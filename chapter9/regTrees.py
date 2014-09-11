@@ -192,3 +192,23 @@ def createForecast(tree, testData, modelEval=regTreeEval):
         yHat[i, 0] = treeForecast(tree, testData, modelEval)
     return yHat
 
+def readDataMat(trainDataPath, testDataPath):
+    trainMat = mat(loadDataSet(trainDataPath))
+    testMat = mat(loadDataSet(testDataPath))
+    return trainMat, testMat
+
+def regCorrcoef(trainDataPath, testDataPath):     #calc correlation coefficients R**2(maxvalue=1), the larger the better
+    myTree = createTree(trainMat, ops(1, 20))
+    yHat = createForecast(myTree, testMat[:, 0:-1])
+    return corrcoef(yHat, testMat[:, -1], rowvar = 0)[0, 1]
+
+def modelCorrcoef(trainDataPath, testDataPath):
+    myTree = createTree(trainMat, leafType=modelLeaf, errType=modelErr, ops(1, 20))
+    yHat = createForecast(myTree, testMat[:, 0:-1], modelEval=modelTreeEval)
+    return corrcoef(yHat, testMat[:, -1], rowvar = 0)[0, 1]
+
+if __name__ == "__main__":
+    trainMat, testMat = readDataMat('train.txt', 'test.txt')
+    regCCoef = regCorrcoef(trainMat, testMat)
+    modelCCoef = modelCorrcoef(trainMat, testMat)
+
