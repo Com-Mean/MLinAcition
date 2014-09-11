@@ -33,6 +33,64 @@ def createTree(dataSet, leafType=regLeaf, errType=regErr, ops=(1,4)):
     retTree['right'] = createTree(rSet)
     return retTree
 
+# line model Tree
+def linearSolve(dataSet):
+    m,n = shape(dataSet)
+    X = mat(ones((m, n)))
+    Y = mat(ones((m, 1)))
+    X[:, 1:n] = dataMat[:, 0:n-1]; Y = dataSet[:, -1]
+    xTx = X.T*X
+    if linalg.det(xTx) ==0.0:
+        raise NameError('This matrix is singular, cannot do inverse,\n\
+                try increasing the second value of ops')
+    ws = xTx.I * (X.T * Y)
+    return ws, X, Y
+
+def modelLeaf(dataSet):
+    ws, X, Y = linearSolve(dataSet)
+    return ws
+
+def modelErr(dataSet):
+    ws, X, Y = linearSolve(dataSet)
+    yHat = X * ws
+    return sum(power(Y - yHat, 2))
+
+# classification Tree, input nominal attri value must change to binary attri
+def majorityCntclass(classList):
+    if len(dataSet) == 0:
+        return None
+    classCount = {}
+    for vote in classList:
+        if vote not in classCount.keys(): classCount[vote] = 0
+        classCount[vote] += 1
+
+    sortedClassCount = sorted(classCount.iteritems(), \
+            key = operator.itemgetter(1), reverse = True)
+    return sortedClassCount[0][0]
+    
+def classificationLeaf(dataSet):
+    if len(set(dataSet[:, -1])) == 1:
+        return dataSet[0, -1]
+    else:
+        return majorityCntclass(dataSet[:, -1])
+
+def classificationErr(dataSet):
+    if len(dataSet) == 0:
+        return None
+
+    classList = dataSet[:, -1]
+    classCount = {}
+    giniGain = 0
+    for vote in classList:
+        if vote not in classCount.keys(): classCount[vote] = 0
+        classCount[vote] += 1
+
+    for key in classCount.keys():
+        giniGain += classCount[key]/len(classList)
+
+    return 1 - giniGain
+
+# regression Tree
 def regLeaf(dataSet):
     return mean(dataSet[:, -1])
 
@@ -50,7 +108,9 @@ def chooseBestSplit(dataSet, leafType=regLeaf, errType=regErr, ops=(1, 4)):
     for featIndex in range(n-1):
         for splitVal in set(dataSet[:, featIndex]):
             mat0,mat1 = binSplitDataSet(dataSet, featIndex, splitVal)
-            if(shape(mat0)[0] < tolN) or (shape(mat1)[0] < tolN): continue
+            if(shape(mat0)[0] < tolN) or (shape(mat1)[0] < tolN): 
+                continue
+            
             newS = errType(mat0) + errType(mat1)
             if newS < bestS:
                 bestIndex = featIndex
@@ -63,3 +123,40 @@ def chooseBestSplit(dataSet, leafType=regLeaf, errType=regErr, ops=(1, 4)):
     if(shape(mat0)[0] < tolN) or (shape(mat1)[0] < tolN): # data remain in the node is less than threshold tolN
         return None, leafType(dataSet)
     return bestIndex, bestValue
+
+def isTree(obj):
+    return (type(obj).__name__ == 'dict')
+
+def getMean(tree):
+    if isTree(tree['right']):
+        tree['right'] = getMean(tree['right'])
+    
+    if isTree(tree['left']):
+        tree['left'] = getMean(tree['left'])
+
+    return (tree['left'] + tree['right'])/2.0
+
+def prune(tree, testData):
+    if shape(testData)[0] == 0:
+        return getMean(tree)
+
+    if isTree(tree['right']) or isTree(tree['right']):
+        lSet, rSet = binSplitDataSet(testData, tree['spInd'], tree['spVal'])
+
+    if isTree(tree['left']):
+        tree['left'] = prune(tree['left'], lSet)
+    if isTree(tree['right']):
+        tree['right'] = prune(tree['right'], rSet)
+    if not isTree(tree['left']) and not isTree(tree['right']): # arrive the leaf
+        lSet, rSet = binSplitDataSet(testData, tree['spInd'], tree['spVal'])
+        errorNoMerge = sum(power(lSet[: -1] - tree['left'], 2)) +\
+                sum(power(rSet[: -1] - tree['right'], 2))
+        treeMean = (tree['left'] + tree['right'])/2.0
+        errorMerge = sum(power(testData[:, -1] - treeMean, 2))
+        if errorMerge < errorNoMerge:
+            print("Merging")
+            return treeMean
+        else:
+            return tree
+    else:
+        return tree
