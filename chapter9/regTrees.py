@@ -75,20 +75,21 @@ def classificationLeaf(dataSet):
         return majorityCntclass(dataSet[:, -1])
 
 def classificationErr(dataSet):
-    if len(dataSet) == 0:
+    m = dataSet.shape()[0]
+    if m == 0:
         return None
 
     classList = dataSet[:, -1]
     classCount = {}
-    giniGain = 0
+    gini = 0
     for vote in classList:
         if vote not in classCount.keys(): classCount[vote] = 0
         classCount[vote] += 1
 
     for key in classCount.keys():
-        giniGain += classCount[key]/len(classList)
+        gini += classCount[key]/m
 
-    return 1 - giniGain
+    return m*(1 - gini)         # gini gain
 
 # regression Tree
 def regLeaf(dataSet):
