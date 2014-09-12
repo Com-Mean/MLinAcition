@@ -76,16 +76,12 @@ def classificationLeaf(dataSet):
 
 def classificationErr(dataSet):
     m = dataSet.shape()[0]
-    if m == 0:
-        return None
-
     classList = dataSet[:, -1]
     classCount = {}
     gini = 0
     for vote in classList:
         if vote not in classCount.keys(): classCount[vote] = 0
         classCount[vote] += 1
-
     for key in classCount.keys():
         gini += classCount[key]/m
 
@@ -96,7 +92,7 @@ def regLeaf(dataSet):
     return mean(dataSet[:, -1])
 
 def regErr(dataSet):
-    return var(dataMat[:, -1]) * shape(dataSet)[0]
+    return var(dataSet[:, -1]) * shape(dataSet)[0]
 
 def chooseBestSplit(dataSet, leafType=regLeaf, errType=regErr, ops=(1, 4)):
     if len(set(dataSet[:,-1].T.tolist()[0])) == 1: # all data have the same class
