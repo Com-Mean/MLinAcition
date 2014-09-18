@@ -115,5 +115,45 @@ def massPlaceFind(filename):
         sleep(1)
     fw.close()
 
+# calc spherical distance  
+def distSLC(vecA, vecB):
+    a = sin(vecA[0,1] * pi/180) * sin(vecB[0,1] * pi/180)
+    b = cos(vecA[0,1] * pi/180) * cos(vecB[0,1] * pi/180) * \
+            cos(pi * (vecB[0, 0] - vecA[0,0])/180)
+    return arccos(a + b) * 6371.0 
+
+import matplotlib
+import matplotlib.pyplot as plt
+
+def clusterClubs(numClust=5):
+    datList = []
+    for line in open('place.txt').readlines():
+        curLine = line.split('\t')
+        datList.append(float(curLine[4]), float(curLine[3]))
+
+    datMat = mat(datList)
+    myCentroids, clustAssing = binkMeans(dataMat, numClust, \
+            distMeas = distEclud)
+    fig = plt.figure()
+    rect = [0.1, 0.1, 0.8, 0.8]
+    scatterMarkers = ['s', 'o', '^', '8', 'p', \
+                      'd', 'v', 'h', '>', '<']
+    axprops = dict(xticks=[], yticks=[])
+    ax0 = fig.add_axes(rect, label='ax0', **axprops)
+    imgP = plt.imread('Portland.png')
+    ax0.imshow(imgP)
+    ax1 = fig.add_axes(rect, label='ax1', frameon=False)
+    for i in range(numClust):
+        ptsInCurClust = datMat[nonzero(clustAssing[:, 0].A == i)[0], :]
+        markerStyle = scatterMarkers[i % len(scatterMarkers)]
+        ax1.scatter(ptsInCurClust[:,0].flatten().A[0], \
+                ptsInCurClust[:,1].flatten().A[0],\
+                marker=markerStyle, s = 90)
+        ax1.scatter(myCentroids[:,0].flatten().A[0],\
+                myCentroids[:, 1].flatten().A[0], marker='+', s = 300)
+    plt.show()
+
+    return 0
+
 if __name__ == '__main__':
     print(randCentroids(array([1, 2, 3, 4]).reshape(2, 2), 2))
