@@ -7,7 +7,8 @@
 # Created Time: 2014年09月18日 星期四 03时20分49秒
 #########################################################################
 from numpy import * 
-
+import urllib
+import json
 
 def loadDataSet(filename):
     dataMat = []
@@ -84,6 +85,35 @@ def binkMeans(dataSet, k, distMeas=distEclud, binK=2):
         clusterMem[nonzero(clusterMem[:, 0].A==bestSplitCents), :] = bestSplitClustMem[:,:]
 
     return centroids, clusterMem
+
+def geoGrab(stAddress, city):
+    apiStem = 'http://where.yahooapis.com/geocode?'
+    param = {}
+    params['flags'] = 'J'              # json datastruct
+    params['appid'] = 'ppp68N8t'
+    params['location'] = '%s %s' % (stAddress, city)
+    url_params = urllib.urlencode(params)
+    yahooApi = apiStem + url_params
+    print(yahooApi)
+    c = urllib.urlopen(yahooApi)
+    return json.loads(c.read())
+
+from time import sleep
+def massPlaceFind(filename):
+    fw = open('places.txt', 'w')
+    fp = open(filename)
+    for line in fp.readlines():
+        curLine = line.strip().split('\t')
+        retDict = geoGrab(curLine[1], curLine[2])
+        if retDict['ResultSet']['Error'] == 0:
+            lat = float(retDict['ResultSet']['Results'][0]['latitude'])
+            lng = float(retDict['ResultSet']['Results'][0]['longitude'])
+            print('%s\t%f\t%f' % (curLine[0], lat, lng))
+            fw.write('%s\t%f\t%f\n' % (curLine[0], lat, lng))
+        else:
+            print('Error fetching!')
+        sleep(1)
+    fw.close()
 
 if __name__ == '__main__':
     print(randCentroids(array([1, 2, 3, 4]).reshape(2, 2), 2))
