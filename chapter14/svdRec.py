@@ -77,7 +77,7 @@ def svdEst(dataMat, user, simMeas, item):
     if simTotal == 0: return 0
     else: return ratSimTotal / simTotal
 
-def getPowSigVals(inSigArr, powerRate = 0.9):
+def getPowSigInd(inSigArr, powerRate = 0.9):
     poweredSig = power(inSigArr, 2)
     powerSum = sum(poweredSig) * powerRate
     powInd = 0; tmpSum = 0
@@ -86,7 +86,7 @@ def getPowSigVals(inSigArr, powerRate = 0.9):
         if tmpSum >= powerSum:
             powInd = i
             break
-    return inSigArr[: powInd + 1]
+    return powInd
 
 def printMat(inMat, threshold = 0.8):
     for i in range(32):
