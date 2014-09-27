@@ -60,6 +60,7 @@ def recommend(dataMat, user, N=3, simMeas = cosSim, estMethod = standEst):
         itemScores.append((item, estimatedScore))
     return sorted(itemScores, key = lambda it: it[1], reverse = True)[:N]
 
+# m*n Matrix is reduced to be n*4 Matrix, use 4 user' est to predict the dstUser's est
 def svdEst(dataMat, user, simMeas, item):
     n = shape(dataMat)[0]
     simTotal = 0.0; ratSimTotal = 0.0
@@ -114,6 +115,4 @@ def imgCompress(numSV=3, threshold=0.8):
     reconMat = U[:,:numSV] * SigRecon * VT[:numSV, :]
     print('****reconstructed matrix using %d sigular values******' % numSV)
     print(reconMat, threshold)
-
-
 
