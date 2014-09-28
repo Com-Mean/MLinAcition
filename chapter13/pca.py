@@ -20,9 +20,9 @@ def pca(dataMat, topNfeat = 9999999):
     meanRemoved = dataMat - meanVals
     covMat = cov(meanRemoved, rowvar = 0)
     eigVals, eigVects = linalg.eig(mat(covMat))
-    eigValInd = argsort(eigVals)
+    eigValInd = argsort(eigVals)                # sort the λ
     eigValInd = eigValInd[:-(topNfeat+1):-1]    # just use the topN features
-    redEigVects = eigVects[:, eigValInd]
-    lowDDataMat = meanRemoved * redEigVects
-    reconMat = (lowDDataMat * redEigVects.T) + meanVals
+    redEigVects = eigVects[:, eigValInd]        # get the topN feature vectors
+    lowDDataMat = meanRemoved * redEigVects     # get the reduced data
+    reconMat = (lowDDataMat * redEigVects.T) + meanVals # the reconstructed data to test
     return (lowDDataMat, reconMat)
