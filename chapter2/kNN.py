@@ -29,3 +29,13 @@ def kNNClassify(inX, dataSet, labels, k):
         classCount[voteIlabel] = classCount.get(voteIlabel, 0) + 1
     sortedClassCount = sorted(classCount.iteritems(), key=operator.itemgetter(1), reverse = True)
     return sortedClassCount[0][0]
+
+def autoNorm(dataSet):
+    minVals = dataSet.min(0)
+    maxVals = dataSet.max(0)
+    ranges = maxVals - minVals
+    normDataSet = zeros(dataSet.shape)
+    m = dataSet.shape[0]
+    normDataSet = dataSet - tile(minVals, (m, 1))
+    normDataSet = normDataSet/tile(ranges,(m, 1))
+    return normDataSet, ranges, minVals
